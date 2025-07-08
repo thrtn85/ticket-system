@@ -1,0 +1,35 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django stuff:
+*.log
+*.pot
+*.pyc
+db.sqlite3
+media/
+staticfiles/
+
+# If using virtualenv:
+venv/
+env/
+ENV/
+.venv/
+
+# Django migrations
+*/migrations/*.pyc
+*/migrations/*.py[cod]
+*/migrations/__pycache__/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Env files
+*.env
+
+# pytest
+.pytest_cache/

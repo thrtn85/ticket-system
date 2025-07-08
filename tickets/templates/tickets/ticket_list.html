@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+  {% if request.user.role == "agent" %}
+    <h2 class="mb-4">Agent Dashboard</h2>
+    <p class="text-muted">View and manage support tickets.</p>
+  {% else %}
+    <h2 class="mb-4">My Tickets</h2>
+    <p class="text-muted">Submit and track your support requests.</p>
+  {% endif %}
+  <div class="row mb-4 d-flex align-items-center">
+    {% if request.user.role == "agent" %}
+    <div class="col-md-4">
+      <div class="card text-white bg-primary mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Open Tickets</h5>
+          <p class="card-text display-4">{{ open_tickets_count }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-white bg-secondary mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Closed Tickets</h5>
+          <p class="card-text display-4">{{ closed_tickets_count }}</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4">
+      <canvas id="statusChart"></canvas>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="d-flex justify-content-between mb-3">
+    <a href="{% url 'tickets:ticket_create' %}" class="btn btn-primary">+ New Ticket</a>
+  </div>
+
+  {% if tickets %}
+    <table class="table table-hover table-bordered align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Status</th>
+          <th>Created by</th>
+          <th>Assigned Agent</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ticket in tickets %}
+          <tr>
+            <td>{{ ticket.id }}</td>
+            <td>
+              <a href="{% url 'tickets:ticket_detail' ticket.pk %}">
+                {{ ticket.title }}
+              </a>
+            </td>
+            <td>
+              {% if ticket.status == "open" %}
+                <span class="badge bg-warning text-dark">Open</span>
+              {% elif ticket.status == "in_progress" %}
+                <span class="badge bg-primary">In Progress</span>
+              {% elif ticket.status == "resolved" %}
+                <span class="badge bg-success">Resolved</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ ticket.get_status_display }}</span>
+              {% endif %}
+            </td>
+            <td>{{ ticket.customer.email }}</td>
+            <td>
+              {% if ticket.agent %}
+                {{ ticket.agent.email }}
+              {% else %}
+                <span class="text-muted">Unassigned</span>
+              {% endif %}
+            </td>
+            <td>{{ ticket.created_at|date:"M d, Y H:i" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="alert alert-info">
+      No tickets found.
+    </div>
+  {% endif %}
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const ctx = document.getElementById('statusChart').getContext('2d');
+    const data = {
+      labels: [{% for item in tickets_by_status %}'{{ item.status }}',{% endfor %}],
+      datasets: [{
+        label: 'Tickets by Status',
+        data: [{% for item in tickets_by_status %}{{ item.count }},{% endfor %}],
+        backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545']
+      }]
+    };
+    const statusChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: data,
+    });
+  </script>
+{% endblock %}
+
