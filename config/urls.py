@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
 from django.contrib.auth import views as auth_views
+from django.contrib.admindocs import urls as admindocs_urls
 from users.views import (
     CustomLoginView,
     CustomPasswordResetView,
@@ -28,6 +29,7 @@ from users.views import (
 
 urlpatterns = [
     # Admin
+    path('admin/doc/', include(admindocs_urls)),
     path('admin/', admin.site.urls),
     
     path('', lambda request: redirect('login', permanent=False)),
