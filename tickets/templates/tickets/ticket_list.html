@@ -2,6 +2,9 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
+
+
+
   {% if request.user.role == "agent" %}
     <h2 class="mb-4">Agent Dashboard</h2>
     <p class="text-muted">View and manage support tickets.</p>
@@ -33,9 +36,60 @@
       </div>
     {% endif %}
   </div>
-
-  <div class="d-flex justify-content-between mb-3">
-    <a href="{% url 'tickets:ticket_create' %}" class="btn btn-primary">+ New Ticket</a>
+  {% if request.GET.view == 'all' and request.user.role == 'agent' %}
+  <h3>All Tickets</h3>
+  {% if tickets %}
+    <div class="table-responsive">
+      <table class="table table-hover table-bordered align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Customer</th>
+            <th>Agent</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ticket in tickets %}
+            <tr>
+              <td>{{ ticket.id }}</td>
+              <td><a href="{% url 'tickets:ticket_detail' ticket.pk %}">{{ ticket.title }}</a></td>
+              <td>
+                {% if ticket.status == "open" %}
+                  <span class="badge bg-warning text-dark">Open</span>
+                {% elif ticket.status == "in_progress" %}
+                  <span class="badge bg-primary">In Progress</span>
+                {% elif ticket.status == "resolved" %}
+                  <span class="badge bg-success">Resolved</span>
+                {% else %}
+                  <span class="badge bg-secondary">{{ ticket.get_status_display }}</span>
+                {% endif %}
+              </td>
+              <td>{{ ticket.customer.email }}</td>
+              <td>
+                {% if ticket.agent %}
+                  {{ ticket.agent.email }}
+                {% else %}
+                  <span class="text-muted">Unassigned</span>
+                {% endif %}
+              </td>
+              <td>{{ ticket.created_at|date:"M d, Y H:i" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-muted">No tickets found.</p>
+  {% endif %}
+{% else %}
+  <div class="d-flex mb-3">
+    <a href="{% url 'tickets:ticket_create' %}" class="btn btn-primary me-3">+ New Ticket</a>
+    {% if request.user.role == "agent" %}
+      <a href="{% url 'tickets:ticket_list' %}?view=all" class="btn btn-secondary">All Tickets</a>
+    {% endif %}
   </div>
 
   {% if request.user.role == "agent" %}
@@ -164,6 +218,7 @@
       <div class="alert alert-info">You haven't submitted any tickets yet.</div>
     {% endif %}
   {% endif %}
+{% endif %}
 
   {% if request.user.role == "agent" %}
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
