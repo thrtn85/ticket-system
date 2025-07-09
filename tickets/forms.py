@@ -15,7 +15,7 @@ class CommentForm(forms.ModelForm):
 class TicketForm(forms.ModelForm):
     class Meta:
         model = Ticket
-        fields = ['title', 'description', 'status', 'agent']
+        fields = ['title', 'description', 'priority', 'status', 'agent']
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
@@ -28,3 +28,4 @@ class TicketForm(forms.ModelForm):
         if user and user.role != 'agent':
             self.fields.pop('status')
             self.fields.pop('agent')
+            self.fields.pop('priority')

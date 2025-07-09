@@ -14,6 +14,18 @@
       Unassigned
     {% endif %}
   </p>
+  <p><strong>Priority:</strong>
+    {% if ticket.priority == 'low' %}
+      <span class="badge bg-secondary">Low</span>
+    {% elif ticket.priority == 'medium' %}
+      <span class="badge bg-info text-dark">Medium</span>
+    {% elif ticket.priority == 'high' %}
+      <span class="badge bg-warning text-dark">High</span>
+    {% elif ticket.priority == 'critical' %}
+      <span class="badge bg-danger">Critical</span>
+    {% endif %}
+  </p>
+  
   <p><strong>Description:</strong></p>
   <p>{{ ticket.description }}</p>
 
