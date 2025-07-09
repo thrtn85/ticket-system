@@ -92,6 +92,7 @@
               <th>Status</th>
               <th>Customer</th>
               <th>Created</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -102,6 +103,12 @@
                 <td><span class="badge bg-warning text-dark">Open</span></td>
                 <td>{{ ticket.customer.email }}</td>
                 <td>{{ ticket.created_at|date:"M d, Y H:i" }}</td>
+                <td>
+                  <form method="post" action="{% url 'tickets:assign_ticket' ticket.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Assign to Me</button>
+                  </form>
+                </td>
               </tr>
             {% endfor %}
           </tbody>

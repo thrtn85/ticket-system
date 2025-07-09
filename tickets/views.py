@@ -1,11 +1,13 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.db.models import Q
 from .models import Ticket, Comment
 from .forms import CommentForm, TicketForm
 from django.db.models import Count
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseRedirect
 
 
 class TicketListView(LoginRequiredMixin, ListView):
@@ -118,3 +120,13 @@ class TicketDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         # Only the customer who created the ticket can delete it
         ticket = self.get_object()
         return self.request.user == ticket.customer
+    
+
+@login_required
+def assign_ticket(request, pk):
+    ticket = get_object_or_404(Ticket, pk=pk)
+    user = request.user
+    if user.role == 'agent' and ticket.agent is None:
+        ticket.agent = user
+        ticket.save()
+    return HttpResponseRedirect(request.META.get("HTTP_REFERER", reverse('tickets:ticket_list')))
