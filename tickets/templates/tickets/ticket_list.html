@@ -2,9 +2,6 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-
-
-
   {% if request.user.role == "agent" %}
     <h2 class="mb-4">Agent Dashboard</h2>
     <p class="text-muted">View and manage support tickets.</p>
