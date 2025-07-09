@@ -2,6 +2,7 @@
 
 from django import forms
 from .models import Comment, Ticket
+from users.models import CustomUser
 
 class CommentForm(forms.ModelForm):
     class Meta:
@@ -29,3 +30,6 @@ class TicketForm(forms.ModelForm):
             self.fields.pop('status')
             self.fields.pop('agent')
             self.fields.pop('priority')
+        else:
+            # Show only agents in the agent field
+            self.fields['agent'].queryset = CustomUser.objects.filter(role='agent')
