@@ -17,22 +17,25 @@ class TicketListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         if user.role == 'agent':
+            # Keep this for compatibility if needed
             return Ticket.objects.filter(Q(agent=user) | Q(status='open'))
         else:
             return Ticket.objects.filter(customer=user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        tickets = Ticket.objects.all()
+        user = self.request.user
 
-        # Tickets by status
-        context['tickets_by_status'] = tickets.values('status').annotate(count=Count('id'))
+        if user.role == 'agent':
+            context['assigned_tickets'] = Ticket.objects.filter(agent=user)
+            context['unassigned_tickets'] = Ticket.objects.filter(agent__isnull=True, status='open')
+        else:
+            context['customer_tickets'] = Ticket.objects.filter(customer=user)
 
-        # Open tickets count
-        context['open_tickets_count'] = tickets.filter(status='open').count()
-        
-        # Closed tickets count
-        context['closed_tickets_count'] = tickets.filter(status='closed').count()
+        # For the chart
+        context['tickets_by_status'] = Ticket.objects.values('status').annotate(count=Count('id'))
+        context['open_tickets_count'] = Ticket.objects.filter(status='open').count()
+        context['closed_tickets_count'] = Ticket.objects.filter(status='closed').count()
 
         return context
 
