@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Ticket, Comment
+from .models import Ticket, Comment, TicketHistory
 from django.contrib import admin
 
 class CommentInline(admin.TabularInline):
@@ -58,3 +58,8 @@ class CommentAdmin(admin.ModelAdmin):
     def ticket_id_display(self, obj):
         return f"#{obj.ticket.id}"
     ticket_id_display.short_description = "Ticket ID"
+
+@admin.register(TicketHistory)
+class TicketHistoryAdmin(admin.ModelAdmin):
+    list_display = ('ticket', 'changed_by', 'previous_status', 'new_status', 'timestamp')
+    list_filter = ('new_status', 'timestamp')

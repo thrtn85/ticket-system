@@ -41,7 +41,6 @@ class Ticket(models.Model):
     def __str__(self):
         return f"Ticket #{self.id}"
 
-
 class Comment(models.Model):
     ticket = models.ForeignKey('Ticket', on_delete=models.CASCADE, related_name='comments')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -50,3 +49,21 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"Comment on Ticket #{self.ticket.id} by {self.user.email}"
+    
+class TicketHistory(models.Model):
+    ticket = models.ForeignKey('Ticket', on_delete=models.CASCADE, related_name='history')
+    changed_by = models.ForeignKey('users.CustomUser', on_delete=models.SET_NULL, null=True)
+    
+    previous_status = models.CharField(max_length=20, choices=Ticket.STATUS_CHOICES, null=True, blank=True)
+    new_status = models.CharField(max_length=20, choices=Ticket.STATUS_CHOICES, null=True, blank=True)
+    
+    previous_agent = models.ForeignKey('users.CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    new_agent = models.ForeignKey('users.CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+
+    previous_priority = models.CharField(max_length=10, choices=Ticket.PRIORITY_CHOICES, null=True, blank=True)
+    new_priority = models.CharField(max_length=10, choices=Ticket.PRIORITY_CHOICES, null=True, blank=True)
+
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-timestamp']

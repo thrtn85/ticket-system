@@ -3,7 +3,7 @@ from django.urls import reverse_lazy, reverse
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.db.models import Q
-from .models import Ticket, Comment
+from .models import Ticket, TicketHistory
 from .forms import CommentForm, TicketForm
 from django.db.models import Count
 from django.contrib.auth.decorators import login_required
@@ -19,6 +19,7 @@ class TicketListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         view = self.request.GET.get('view')
+        
         if view == 'all' and user.role == 'agent':
             return Ticket.objects.all()
         if user.role == 'agent':
@@ -114,7 +115,28 @@ class TicketUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return form
 
     def form_valid(self, form):
-        return super().form_valid(form)
+        original = self.get_object()
+        ticket = form.save(commit=False)
+
+        status_changed = ticket.status != original.status
+        agent_changed = ticket.agent != original.agent
+        priority_changed = ticket.priority != original.priority
+
+        response = super().form_valid(form)
+
+        if status_changed or agent_changed or priority_changed:
+            TicketHistory.objects.create(
+                ticket=self.object,
+                changed_by=self.request.user,
+                previous_status=original.status if status_changed else None,
+                new_status=ticket.status if status_changed else None,
+                previous_agent=original.agent if agent_changed else None,
+                new_agent=ticket.agent if agent_changed else None,
+                previous_priority=original.priority if priority_changed else None,
+                new_priority=ticket.priority if priority_changed else None,
+            )
+
+        return response
     
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
