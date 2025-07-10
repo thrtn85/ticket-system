@@ -96,10 +96,6 @@
     {% if request.user.role == "agent" %}
       <a href="{% url 'tickets:ticket_list' %}?view=all" class="btn btn-secondary me-3">All Tickets</a>
     {% endif %}
-    {% if request.user.role == "agent" %}
-      <a class="btn btn-secondary" href="{% url 'admin_report' %}">Reports</a>
-    {% endif %}
-
   </div>
 
   {% if request.user.role == "agent" %}
