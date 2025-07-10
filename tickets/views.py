@@ -1,13 +1,17 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy, reverse
 from django.shortcuts import get_object_or_404, redirect
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.db.models import Q
-from .models import Ticket, TicketHistory
-from .forms import CommentForm, TicketForm
 from django.db.models import Count
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
+from django.utils.timezone import now, timedelta
+from django.contrib.admin.views.decorators import staff_member_required
+from django.utils.decorators import method_decorator
+from .models import Ticket, TicketHistory
+from .forms import CommentForm, TicketForm
+from .mixins import AdminOrAgentRequiredMixin
 
 
 class TicketListView(LoginRequiredMixin, ListView):
@@ -46,7 +50,6 @@ class TicketListView(LoginRequiredMixin, ListView):
             context['closed_tickets_count'] = Ticket.objects.filter(status='closed').count()
 
         return context
-
 
 
 class TicketDetailView(LoginRequiredMixin, DetailView):
@@ -154,6 +157,42 @@ class TicketDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         ticket = self.get_object()
         return self.request.user == ticket.customer
     
+
+class AdminReportView(LoginRequiredMixin, AdminOrAgentRequiredMixin, TemplateView):
+    template_name = 'reports/admin_report.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Tickets by status
+        status_qs = Ticket.objects.values('status').annotate(count=Count('id'))
+        context['status_labels'] = [item['status'].capitalize() for item in status_qs]
+        context['status_counts'] = [item['count'] for item in status_qs]
+
+        # Tickets by priority
+        priority_qs = Ticket.objects.values('priority').annotate(count=Count('id'))
+        context['priority_labels'] = [item['priority'].capitalize() for item in priority_qs]
+        context['priority_counts'] = [item['count'] for item in priority_qs]
+
+        # Tickets by agent
+        agent_qs = Ticket.objects.exclude(agent=None).values('agent__email').annotate(count=Count('id'))
+        context['agent_labels'] = [item['agent__email'] for item in agent_qs]
+        context['agent_counts'] = [item['count'] for item in agent_qs]
+
+        # Activity over the last 30 days
+        last_30_days = now() - timedelta(days=30)
+        activity_qs = (
+            Ticket.objects.filter(created_at__gte=last_30_days)
+            .extra({'day': "date(created_at)"})
+            .values('day')
+            .annotate(count=Count('id'))
+            .order_by('day')
+        )
+        context['activity_days'] = [str(item['day']) for item in activity_qs]
+        context['activity_counts'] = [item['count'] for item in activity_qs]
+
+        return context
+
 
 @login_required
 def assign_ticket(request, pk):

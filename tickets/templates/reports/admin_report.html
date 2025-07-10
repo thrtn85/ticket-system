@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Report{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4 text-center">📊 Ticket Reports</h2>
+
+  <div class="row mb-4">
+    <div class="col-md-6 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Tickets by Status</h5>
+          <canvas id="statusChart"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Tickets by Priority</h5>
+          <canvas id="priorityChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-6 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Tickets by Agent</h5>
+          <canvas id="agentChart"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Ticket Volume (Last 30 Days)</h5>
+          <canvas id="activityChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const statusChart = new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+      labels: {{ status_labels|safe }},
+      datasets: [{
+        data: {{ status_counts|safe }},
+        backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#dc3545']
+      }]
+    }
+  });
+
+  const priorityChart = new Chart(document.getElementById('priorityChart'), {
+    type: 'bar',
+    data: {
+      labels: {{ priority_labels|safe }},
+      datasets: [{
+        label: 'Count',
+        data: {{ priority_counts|safe }},
+        backgroundColor: '#6610f2'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  const agentChart = new Chart(document.getElementById('agentChart'), {
+    type: 'bar',
+    data: {
+      labels: {{ agent_labels|safe }},
+      datasets: [{
+        label: 'Tickets',
+        data: {{ agent_counts|safe }},
+        backgroundColor: '#20c997'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  const activityChart = new Chart(document.getElementById('activityChart'), {
+    type: 'line',
+    data: {
+      labels: {{ activity_days|safe }},
+      datasets: [{
+        label: 'Tickets Created',
+        data: {{ activity_counts|safe }},
+        fill: false,
+        borderColor: '#0dcaf0',
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: { ticks: { autoSkip: true, maxTicksLimit: 10 } }
+      }
+    }
+  });
+</script>
+{% endblock %}

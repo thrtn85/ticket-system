@@ -26,6 +26,7 @@ from users.views import (
     CustomPasswordResetConfirmView,
     CustomPasswordResetCompleteView,
 )
+from tickets.views import AdminReportView
 
 urlpatterns = [
     # Admin
@@ -46,4 +47,6 @@ urlpatterns = [
     path('password_reset/done/', CustomPasswordResetDoneView.as_view(), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset/done/', CustomPasswordResetCompleteView.as_view(), name='password_reset_complete'),
+
+    path('report/', AdminReportView.as_view(), name='admin_report'),
 ]

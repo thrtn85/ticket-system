@@ -28,9 +28,6 @@
           </div>
         </div>
       </div>
-      <div class="col-md-4">
-        <canvas id="statusChart"></canvas>
-      </div>
     {% endif %}
   </div>
   {% if request.GET.view == 'all' and request.user.role == 'agent' %}
@@ -97,8 +94,12 @@
   <div class="d-flex mb-3">
     <a href="{% url 'tickets:ticket_create' %}" class="btn btn-primary me-3">+ New Ticket</a>
     {% if request.user.role == "agent" %}
-      <a href="{% url 'tickets:ticket_list' %}?view=all" class="btn btn-secondary">All Tickets</a>
+      <a href="{% url 'tickets:ticket_list' %}?view=all" class="btn btn-secondary me-3">All Tickets</a>
     {% endif %}
+    {% if request.user.role == "agent" %}
+      <a class="btn btn-secondary" href="{% url 'admin_report' %}">Reports</a>
+    {% endif %}
+
   </div>
 
   {% if request.user.role == "agent" %}
@@ -252,36 +253,4 @@
     {% endif %}
   {% endif %}
 {% endif %}
-
-  {% if request.user.role == "agent" %}
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    const ctx = document.getElementById('statusChart').getContext('2d');
-    const data = {
-      labels: [{% for item in tickets_by_status %}'{{ item.status|capfirst }}',{% endfor %}],
-      datasets: [{
-        data: [{% for item in tickets_by_status %}{{ item.count }},{% endfor %}],
-        backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#dc3545'],
-        borderWidth: 1
-      }]
-    };
-    new Chart(ctx, {
-      type: 'doughnut',
-      data: data,
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom' }
-        }
-      }
-    });
-  </script>
-  <style>
-    #statusChart {
-      max-height: 300px;
-      width: 100%;
-    }
-  </style>
-  {% endif %}
 {% endblock %}
