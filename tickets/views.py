@@ -46,7 +46,7 @@ class TicketListView(LoginRequiredMixin, ListView):
         # Chart data only for agents
         if user.role == 'agent':
             context['tickets_by_status'] = Ticket.objects.values('status').annotate(count=Count('id'))
-            context['open_tickets_count'] = Ticket.objects.filter(status='open').count()
+            context['open_tickets_count'] = Ticket.objects.filter(Q(status='open') | Q(status='in_progress')).count()
             context['closed_tickets_count'] = Ticket.objects.filter(status='closed').count()
 
         return context

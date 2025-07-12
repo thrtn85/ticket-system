@@ -4,95 +4,102 @@
 
 {% block content %}
 <div class="container mt-4">
-  <h2>{{ ticket.title }}</h2>
-  <p><strong>Status:</strong> {{ ticket.get_status_display }}</p>
-  <p><strong>Customer:</strong> {{ ticket.customer.email }}</p>
-  <p><strong>Agent:</strong>
-    {% if ticket.agent %}
-      {{ ticket.agent.email }}
-    {% else %}
-      Unassigned
-    {% endif %}
-  </p>
-  <p><strong>Priority:</strong>
-    {% if ticket.priority == 'low' %}
-      <span class="badge bg-secondary">Low</span>
-    {% elif ticket.priority == 'medium' %}
-      <span class="badge bg-info text-dark">Medium</span>
-    {% elif ticket.priority == 'high' %}
-      <span class="badge bg-warning text-dark">High</span>
-    {% elif ticket.priority == 'critical' %}
-      <span class="badge bg-danger">Critical</span>
-    {% endif %}
-  </p>
-  
-  <p><strong>Description:</strong></p>
-  <p>{{ ticket.description }}</p>
+  <div class="row">
+    <!-- Left: Ticket Details -->
+    <div class="col-md-8">
+      <h2>{{ ticket.title }}</h2>
+      <p><strong>Status:</strong> {{ ticket.get_status_display }}</p>
+      <p><strong>Customer:</strong> {{ ticket.customer.email }}</p>
+      <p><strong>Agent:</strong>
+        {% if ticket.agent %}
+          {{ ticket.agent.email }}
+        {% else %}
+          Unassigned
+        {% endif %}
+      </p>
+      <p><strong>Priority:</strong>
+        {% if ticket.priority == 'low' %}
+          <span class="badge bg-secondary">Low</span>
+        {% elif ticket.priority == 'medium' %}
+          <span class="badge bg-info text-dark">Medium</span>
+        {% elif ticket.priority == 'high' %}
+          <span class="badge bg-warning text-dark">High</span>
+        {% elif ticket.priority == 'critical' %}
+          <span class="badge bg-danger">Critical</span>
+        {% endif %}
+      </p>
 
-  <hr>
+      <p><strong>Description:</strong></p>
+      <p>{{ ticket.description }}</p>
 
-  <h4>Comments</h4>
-  {% for comment in comments %}
-    <div class="mb-3 border-bottom pb-2">
-      <p class="mb-1"><strong>{{ comment.user.email }}</strong> <small class="text-muted">{{ comment.created_at|date:"M d, Y H:i" }}</small></p>
-      <p>{{ comment.message }}</p>
+      <hr>
+
+      <h4>Comments</h4>
+      {% for comment in comments %}
+        <div class="mb-3 border-bottom pb-2">
+          <p class="mb-1"><strong>{{ comment.user.email }}</strong> <small class="text-muted">{{ comment.created_at|date:"M d, Y H:i" }}</small></p>
+          <p>{{ comment.message }}</p>
+        </div>
+      {% empty %}
+        <p class="text-muted">No replies yet.</p>
+      {% endfor %}
+
+      <div class="mb-3">
+        <h5>Reply to this ticket</h5>
+        <form method="post">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <button type="submit" class="btn btn-primary">Post Reply</button>
+        </form>
+      </div>
+
+      <div class="mt-3 mb-5">
+        <a href="{% url 'tickets:ticket_list' %}" class="btn btn-outline-primary me-2">← Back to tickets</a>
+        {% if user.is_authenticated and user.role == 'agent' %}
+          <a href="{% url 'tickets:ticket_update' ticket.pk %}" class="btn btn-warning me-2">Edit Ticket</a>
+          <a href="{% url 'tickets:ticket_delete' ticket.pk %}" class="btn btn-danger">Delete Ticket</a>
+        {% endif %}
+      </div>
     </div>
-  {% empty %}
-    <p class="text-muted">No replies yet.</p>
-  {% endfor %}
 
-  <div class="mb-3">
-    <h5>Reply to this ticket</h5>
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit" class="btn btn-primary">Post Reply</button>
-    </form>
-  </div>
-
-  <h5>Status, Assignment & Priority History</h5>
-{% if ticket.history.all %}
-  <ul class="list-group mb-3">
-    {% for record in ticket.history.all %}
-      <li class="list-group-item">
-        <small>
-          <strong>{{ record.timestamp|date:"M d, Y H:i" }}</strong> –
-
-          {% if record.previous_status != record.new_status %}
-            Status changed from <strong>{{ record.previous_status|capfirst }}</strong>
-            to <strong>{{ record.new_status|capfirst }}</strong>
+    <!-- Right: History Panel -->
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <div class="card-header">
+          <strong>Status, Assignment & Priority History</strong>
+        </div>
+        <div class="card-body">
+          {% if ticket.history.all %}
+            <ul class="list-group list-group-flush">
+              {% for record in ticket.history.all %}
+                <li class="list-group-item">
+                  <small>
+                    <strong>{{ record.timestamp|date:"M d, Y H:i" }}</strong><br>
+                    {% if record.previous_status != record.new_status %}
+                      Status: <em>{{ record.previous_status|capfirst }}</em> → <em>{{ record.new_status|capfirst }}</em><br>
+                    {% endif %}
+                    {% if record.previous_agent != record.new_agent %}
+                      Agent:
+                      {% if record.previous_agent %}
+                        <em>{{ record.previous_agent.email }}</em> → <em>{{ record.new_agent.email }}</em><br>
+                      {% else %}
+                        Assigned to <em>{{ record.new_agent.email }}</em><br>
+                      {% endif %}
+                    {% endif %}
+                    {% if record.previous_priority != record.new_priority %}
+                      Priority: <em>{{ record.previous_priority|capfirst }}</em> → <em>{{ record.new_priority|capfirst }}</em><br>
+                    {% endif %}
+                    <span class="text-muted">By {{ record.changed_by.email }}</span>
+                  </small>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No history available.</p>
           {% endif %}
-
-          {% if record.previous_agent != record.new_agent %}
-            {% if record.previous_agent %}
-              reassigned from <strong>{{ record.previous_agent.email }}</strong>
-              to <strong>{{ record.new_agent.email }}</strong>
-            {% else %}
-              assigned to <strong>{{ record.new_agent.email }}</strong>
-            {% endif %}
-          {% endif %}
-
-          {% if record.previous_priority != record.new_priority %}
-            priority changed from <strong>{{ record.previous_priority|capfirst }}</strong>
-            to <strong>{{ record.new_priority|capfirst }}</strong>
-          {% endif %}
-
-          by {{ record.changed_by.email }}
-        </small>
-      </li>
-    {% endfor %}
-  </ul>
-{% else %}
-  <p class="text-muted">No history available.</p>
-{% endif %}
-
-
-  <div class="mt-3">
-    <a href="{% url 'tickets:ticket_list' %}" class="btn btn-outline-primary me-2">← Back to tickets</a>
-    {% if user.is_authenticated and user.role == 'agent' %}
-      <a href="{% url 'tickets:ticket_update' ticket.pk %}" class="btn btn-warning me-2">Edit Ticket</a>
-      <a href="{% url 'tickets:ticket_delete' ticket.pk %}" class="btn btn-danger">Delete Ticket</a>
-    {% endif %}
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

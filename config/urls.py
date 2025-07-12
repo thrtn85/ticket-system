@@ -49,4 +49,6 @@ urlpatterns = [
     path('reset/done/', CustomPasswordResetCompleteView.as_view(), name='password_reset_complete'),
 
     path('report/', AdminReportView.as_view(), name='admin_report'),
+
+    path('notifications/', include('notifications.urls', namespace='notifications')),
 ]
