@@ -19,6 +19,8 @@ from django.urls import path, include
 from django.shortcuts import redirect
 from django.contrib.auth import views as auth_views
 from django.contrib.admindocs import urls as admindocs_urls
+from django.conf.urls.static import static
+from django.conf import settings
 from users.views import (
     CustomLoginView,
     CustomPasswordResetView,
@@ -51,4 +53,4 @@ urlpatterns = [
     path('report/', AdminReportView.as_view(), name='admin_report'),
 
     path('notifications/', include('notifications.urls', namespace='notifications')),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

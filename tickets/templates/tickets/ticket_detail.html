@@ -29,6 +29,14 @@
         {% endif %}
       </p>
 
+      {% if ticket.attachment %}
+        <p><strong>Attachment:</strong>
+          <a href="{{ ticket.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-secondary ms-2">
+            View File
+          </a>
+        </p>
+      {% endif %}
+
       <p><strong>Description:</strong></p>
       <p>{{ ticket.description }}</p>
 
@@ -36,17 +44,26 @@
 
       <h4>Comments</h4>
       {% for comment in comments %}
-        <div class="mb-3 border-bottom pb-2">
-          <p class="mb-1"><strong>{{ comment.user.email }}</strong> <small class="text-muted">{{ comment.created_at|date:"M d, Y H:i" }}</small></p>
-          <p>{{ comment.message }}</p>
-        </div>
-      {% empty %}
-        <p class="text-muted">No replies yet.</p>
+      <div class="mb-3 border-bottom pb-2">
+        <p class="mb-1"><strong>{{ comment.user.email }}</strong>
+          <small class="text-muted">{{ comment.created_at|date:"M d, Y H:i" }}</small>
+        </p>
+        <p>{{ comment.message }}</p>
+
+        {% if comment.attachment %}
+          <p class="mb-0">
+            <i class="fa-solid fa-paperclip"></i> <a href="{{ comment.attachment.url }}" target="_blank">
+              {{ comment.attachment.name|cut:"comment_attachments/" }}
+            </a>
+          </p>
+        {% endif %}
+      </div>
       {% endfor %}
+
 
       <div class="mb-3">
         <h5>Reply to this ticket</h5>
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
           {% csrf_token %}
           {{ form.as_p }}
           <button type="submit" class="btn btn-primary">Post Reply</button>

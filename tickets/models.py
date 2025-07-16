@@ -32,11 +32,8 @@ class Ticket(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    priority = models.CharField(
-        max_length=10,
-        choices=PRIORITY_CHOICES,
-        default='low',
-    )
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='low')
+    attachment = models.FileField(upload_to='ticket_attachments/', null=True, blank=True)
 
     def __str__(self):
         return f"Ticket #{self.id}"
@@ -46,7 +43,8 @@ class Comment(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-
+    attachment = models.FileField(upload_to='comment_attachments/', null=True, blank=True)
+    
     def __str__(self):
         return f"Comment on Ticket #{self.ticket.id} by {self.user.email}"
     

@@ -65,7 +65,7 @@ class TicketDetailView(LoginRequiredMixin, DetailView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = CommentForm(request.POST)
+        form = CommentForm(request.POST, request.FILES)  # ✅ Fix here
         if form.is_valid():
             comment = form.save(commit=False)
             comment.ticket = self.object

@@ -6,7 +6,7 @@ class CommentInline(admin.TabularInline):
     model = Comment
     extra = 1
     can_delete = True
-    fields = ('message', 'created_at')
+    fields = ('message','attachment', 'created_at')
     readonly_fields = ('created_at',)
 
     def has_change_permission(self, request, obj=None):

@@ -7,7 +7,7 @@ from users.models import CustomUser
 class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
-        fields = ['message']
+        fields = ['message','attachment']
         widgets = {
             'message': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'Write a reply...'})
         }
@@ -16,7 +16,7 @@ class CommentForm(forms.ModelForm):
 class TicketForm(forms.ModelForm):
     class Meta:
         model = Ticket
-        fields = ['title', 'description', 'priority', 'status', 'agent']
+        fields = ['title', 'description', 'priority', 'status', 'agent', 'attachment']
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
