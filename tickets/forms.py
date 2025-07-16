@@ -1,10 +1,23 @@
 # tickets/forms.py
 
 from django import forms
+from django.core.exceptions import ValidationError
 from .models import Comment, Ticket
 from users.models import CustomUser
 
+
+ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.doc', '.docx']
+
+def validate_file_extension(value):
+    import os
+    ext = os.path.splitext(value.name)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise ValidationError(f'Unsupported file extension. Allowed types: {", ".join(ALLOWED_EXTENSIONS)}')
+
+
 class CommentForm(forms.ModelForm):
+    attachment = forms.FileField(required=False, validators=[validate_file_extension])
+
     class Meta:
         model = Comment
         fields = ['message','attachment']
@@ -14,6 +27,8 @@ class CommentForm(forms.ModelForm):
 
 
 class TicketForm(forms.ModelForm):
+    attachment = forms.FileField(required=False, validators=[validate_file_extension])
+
     class Meta:
         model = Ticket
         fields = ['title', 'description', 'priority', 'status', 'agent', 'attachment']

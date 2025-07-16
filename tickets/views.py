@@ -14,6 +14,8 @@ from .forms import CommentForm, TicketForm
 from .mixins import AdminOrAgentRequiredMixin
 
 
+
+
 class TicketListView(LoginRequiredMixin, ListView):
     model = Ticket
     context_object_name = 'tickets'

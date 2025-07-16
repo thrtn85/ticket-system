@@ -44,21 +44,31 @@
 
       <h4>Comments</h4>
       {% for comment in comments %}
-      <div class="mb-3 border-bottom pb-2">
-        <p class="mb-1"><strong>{{ comment.user.email }}</strong>
-          <small class="text-muted">{{ comment.created_at|date:"M d, Y H:i" }}</small>
-        </p>
-        <p>{{ comment.message }}</p>
+        <div class="mb-3 border-bottom pb-2">
+          <p class="mb-1"><strong>{{ comment.user.email }}</strong> <small class="text-muted">{{ comment.created_at|date:"M d, Y H:i" }}</small></p>
+          <p>{{ comment.message }}</p>
 
-        {% if comment.attachment %}
-          <p class="mb-0">
-            <i class="fa-solid fa-paperclip"></i> <a href="{{ comment.attachment.url }}" target="_blank">
-              {{ comment.attachment.name|cut:"comment_attachments/" }}
-            </a>
-          </p>
-        {% endif %}
-      </div>
+          {% if comment.attachment %}
+            {% with comment.attachment.url as file_url %}
+              {% with comment.attachment.name|lower as filename %}
+                {% if ".jpg" in filename or ".jpeg" in filename or ".png" in filename or ".gif" in filename %}
+                  <img src="{{ file_url }}" alt="Attachment" class="img-fluid rounded mb-2" style="max-width: 400px;">
+                {% elif ".pdf" in filename or ".doc" in filename or ".docx" in filename %}
+                  <a href="{{ file_url }}" target="_blank" rel="noopener noreferrer">
+                    Download attachment ({{ filename|slice:"-20:" }})
+                  </a>
+                {% else %}
+                  <a href="{{ file_url }}" target="_blank" rel="noopener noreferrer">Download attachment</a>
+                {% endif %}
+              {% endwith %}
+            {% endwith %}
+          {% endif %}
+
+        </div>
+      {% empty %}
+        <p class="text-muted">No replies yet.</p>
       {% endfor %}
+
 
 
       <div class="mb-3">
