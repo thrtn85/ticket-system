@@ -7,89 +7,104 @@
   <div class="row">
     <!-- Left: Ticket Details -->
     <div class="col-md-8">
-      <h2>{{ ticket.title }}</h2>
-      <p><strong>Status:</strong> {{ ticket.get_status_display }}</p>
-      <p><strong>Customer:</strong> {{ ticket.customer.email }}</p>
-      <p><strong>Agent:</strong>
-        {% if ticket.agent %}
-          {{ ticket.agent.email }}
-        {% else %}
-          Unassigned
-        {% endif %}
-      </p>
-      <p><strong>Priority:</strong>
-        {% if ticket.priority == 'low' %}
-          <span class="badge bg-secondary">Low</span>
-        {% elif ticket.priority == 'medium' %}
-          <span class="badge bg-info text-dark">Medium</span>
-        {% elif ticket.priority == 'high' %}
-          <span class="badge bg-warning text-dark">High</span>
-        {% elif ticket.priority == 'critical' %}
-          <span class="badge bg-danger">Critical</span>
-        {% endif %}
-      </p>
+    
+      <!-- 🎟️ Ticket Info Card -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h2 class="card-title">{{ ticket.title }}</h2>
+          <p><strong>Status:</strong> {{ ticket.get_status_display }}</p>
+          <p><strong>Customer:</strong> {{ ticket.customer.email }}</p>
+          <p><strong>Agent:</strong>
+            {% if ticket.agent %}
+              {{ ticket.agent.email }}
+            {% else %}
+              Unassigned
+            {% endif %}
+          </p>
+          <p><strong>Priority:</strong>
+            {% if ticket.priority == 'low' %}
+              <span class="badge bg-secondary">Low</span>
+            {% elif ticket.priority == 'medium' %}
+              <span class="badge bg-info text-dark">Medium</span>
+            {% elif ticket.priority == 'high' %}
+              <span class="badge bg-warning text-dark">High</span>
+            {% elif ticket.priority == 'critical' %}
+              <span class="badge bg-danger">Critical</span>
+            {% endif %}
+          </p>
 
-      {% if ticket.attachment %}
-        <p><strong>Attachment:</strong>
-          <a href="{{ ticket.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-secondary ms-2">
-            View File
-          </a>
-        </p>
-      {% endif %}
-
-      <p><strong>Description:</strong></p>
-      <p>{{ ticket.description }}</p>
-
-      <hr>
-
-      <h4>Comments</h4>
-      {% for comment in comments %}
-        <div class="mb-3 border-bottom pb-2">
-          <p class="mb-1"><strong>{{ comment.user.email }}</strong> <small class="text-muted">{{ comment.created_at|date:"M d, Y H:i" }}</small></p>
-          <p>{{ comment.message }}</p>
-
-          {% if comment.attachment %}
-            {% with comment.attachment.url as file_url %}
-              {% with comment.attachment.name|lower as filename %}
-                {% if ".jpg" in filename or ".jpeg" in filename or ".png" in filename or ".gif" in filename %}
-                  <img src="{{ file_url }}" alt="Attachment" class="img-fluid rounded mb-2" style="max-width: 400px;">
-                {% elif ".pdf" in filename or ".doc" in filename or ".docx" in filename %}
-                  <a href="{{ file_url }}" target="_blank" rel="noopener noreferrer">
-                    Download attachment ({{ filename|slice:"-20:" }})
-                  </a>
-                {% else %}
-                  <a href="{{ file_url }}" target="_blank" rel="noopener noreferrer">Download attachment</a>
-                {% endif %}
-              {% endwith %}
-            {% endwith %}
+          {% if ticket.attachment %}
+            <p><strong>Attachment:</strong>
+              <a href="{{ ticket.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-secondary ms-2">
+                View File
+              </a>
+            </p>
           {% endif %}
 
+          <p><strong>Description:</strong></p>
+          <p>{{ ticket.description }}</p>
+
+          {% if user.is_authenticated and user.role == 'agent' %}
+          <a href="{% url 'tickets:ticket_update' ticket.pk %}" class="btn btn-warning me-2">Edit Ticket</a>
+        {% endif %}
         </div>
-      {% empty %}
-        <p class="text-muted">No replies yet.</p>
-      {% endfor %}
-
-
-
-      <div class="mb-3">
-        <h5>Reply to this ticket</h5>
-        <form method="post" enctype="multipart/form-data">
-          {% csrf_token %}
-          {{ form.as_p }}
-          <button type="submit" class="btn btn-primary">Post Reply</button>
-        </form>
       </div>
 
-      <div class="mt-3 mb-5">
+      <!-- 💬 Comments Card -->
+      <div class="card mb-4">
+        <div class="card-header"><h4 class="mb-0">Comments</h4></div>
+        <div class="card-body">
+          {% for comment in comments %}
+            <div class="mb-3 border-bottom pb-2">
+              <p class="mb-1">
+                <strong>{{ comment.user.email }}</strong>
+                <small class="text-muted">{{ comment.created_at|date:"M d, Y H:i" }}</small>
+              </p>
+              <p>{{ comment.message }}</p>
+
+              {% if comment.attachment %}
+                {% with comment.attachment.url as file_url %}
+                  {% with comment.attachment.name|lower as filename %}
+                    {% if ".jpg" in filename or ".jpeg" in filename or ".png" in filename or ".gif" in filename %}
+                      <img src="{{ file_url }}" alt="Attachment" class="img-fluid rounded mb-2" style="max-width: 250px;">
+                    {% elif ".pdf" in filename or ".doc" in filename or ".docx" in filename %}
+                      <a href="{{ file_url }}" target="_blank" rel="noopener noreferrer">
+                        Download attachment ({{ filename|slice:"-20:" }})
+                      </a>
+                    {% else %}
+                      <a href="{{ file_url }}" target="_blank" rel="noopener noreferrer">Download attachment</a>
+                    {% endif %}
+                  {% endwith %}
+                {% endwith %}
+              {% endif %}
+            </div>
+          {% empty %}
+            <p class="text-muted">No replies yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- 📝 Reply Form Card -->
+      <div class="card mb-4">
+        <div class="card-header"><h5 class="mb-0">Reply to this ticket</h5></div>
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Post Reply</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="mb-5">
         <a href="{% url 'tickets:ticket_list' %}" class="btn btn-outline-primary me-2">← Back to tickets</a>
         {% if user.is_authenticated and user.role == 'agent' %}
-          <a href="{% url 'tickets:ticket_update' ticket.pk %}" class="btn btn-warning me-2">Edit Ticket</a>
           <a href="{% url 'tickets:ticket_delete' ticket.pk %}" class="btn btn-danger">Delete Ticket</a>
         {% endif %}
       </div>
     </div>
 
-    <!-- Right: History Panel -->
+    <!-- 📜 Right: History Panel -->
     <div class="col-md-4">
       <div class="card mb-4">
         <div class="card-header">

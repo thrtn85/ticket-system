@@ -6,7 +6,7 @@ from .models import Comment, Ticket
 from users.models import CustomUser
 
 
-ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.doc', '.docx']
+ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.doc', '.docx', '.txt']
 
 def validate_file_extension(value):
     import os
